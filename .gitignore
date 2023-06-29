@@ -6,3 +6,743 @@
 
 # Compiled Pre-Linked Libraries
 *.plx
+create table t_tabla_1(
+id_1 number(30),
+nombre VARCHAR2(80),
+precio number(30),
+num_tipo number(30),
+num_mar nvarchar2(30));
+
+create table t_tabla_2(
+id_t number(30),
+tipo varchar2(80));
+
+create table t_tabla_3(
+id_3 number(30),
+marca_o_nombre_del_puesto varchar2(80));
+
+select*from t_tabla_1;
+select*from t_tabla_2;
+select*from t_tabla_3;
+
+drop table t_tabla_1;
+drop table t_tabla_2;
+drop table t_tabla_3;
+DROP TRIGGER tri_tabla_2;
+DROP SEQUENCE seq_tabla_2;
+DROP TRIGGER tri_tabla_3;
+DROP SEQUENCE seq_tabla_3;
+
+
+/*lo que me esta indicando es que va a hacer una secuencia de valores para id
+comenzando desde 1 y se incrementa en 1*/
+CREATE SEQUENCE seq_tabla_2 START WITH 1 INCREMENT BY 1; 
+/*cree el trigger que se ejecuta antes de insertar un nuevo resgistro en la t_tabla_2*/
+/*utilizara la secuencia y realizando comparaciones para determinar un campo id_t*/
+CREATE OR REPLACE TRIGGER tri_tabla_2
+/*se ejecutará antes de realizar una inserción*/
+BEFORE INSERT ON t_tabla_2
+/* se ejecutará una vez por cada fila afectada por la inserción*/
+FOR EACH ROW
+BEGIN
+/*compara el valor del campo tipo del nuevo registro :new.tipo con la cadena 'ropa' */
+    IF :NEW.tipo = 'ropa' THEN
+/* Si la comparación es verdadera y el valor de tipo es igual a 'ropa' 
+se asigna el siguiente valor de la secuencia seq_tabla_2 al campo id_t del nuevo registro */
+        :NEW.id_t := seq_tabla_2.NEXTVAL;
+ /*utilice elsif para agregar un segundo if y esto permite realizar una segunda condion basada en otro valor de tipo*/
+     ELSIF :NEW.tipo = 'agua' THEN
+/* Si la comparación es verdadera y el valor de tipo es igual a 'agua' 
+se asigna el siguiente valor de la secuencia seq_tabla_2 al campo id_t del nuevo registro */
+        :NEW.id_t := seq_tabla_2.NEXTVAL ;
+    ELSE
+/*Si la comparación es falsa y el valor de tipo no es igual 
+a 'agua', se asigna null al campo id_t del nuevo registro.*/
+        :NEW.id_t := NULL;
+    END IF;
+END;
+/
+
+INSERT INTO t_tabla_2 (tipo) VALUES ('ropa');
+
+INSERT INTO t_tabla_2 (tipo) VALUES ('agua');
+
+
+/*lo que me esta indicando es que va a hacer una secuencia de valores para id
+comenzando desde 1 y se incrementa en 1*/
+CREATE SEQUENCE seq_tabla_3 START WITH 1 INCREMENT BY 1; 
+/*cree el trigger que se ejecuta antes de insertar un nuevo resgistro en la t_tabla_3*/
+/*utilizara la secuencia y realizando comparaciones para determinar un campo id_t*/
+CREATE OR REPLACE TRIGGER tri_tabla_3
+/*se ejecutará antes de realizar una inserción*/
+BEFORE INSERT ON t_tabla_3
+/* se ejecutará una vez por cada fila afectada por la inserción*/
+FOR EACH ROW
+BEGIN
+/*compara el valor del campo tipo del nuevo registro :new.tipo con la cadena 'ropa' */
+    IF :NEW.marca_o_nombre_del_puesto = 'manantial' THEN
+/* Si la comparación es verdadera y el valor de tipo es igual a 'manantial' 
+se asigna el siguiente valor de la secuencia seq_tabla_3 al campo id_t del nuevo registro */
+        :NEW.id_3 := seq_tabla_3.NEXTVAL;
+ /*utilice elsif para agregar un segundo if y esto permite realizar una segunda condion basada en otro valor de tipo*/
+     ELSIF :NEW.marca_o_nombre_del_puesto = 'el tio' THEN
+/* Si la comparación es verdadera y el valor de tipo es igual a 'el tio' 
+se asigna el siguiente valor de la secuencia seq_tabla_2 al campo id_t del nuevo registro */
+        :NEW.id_3 := seq_tabla_3.NEXTVAL;
+    ELSE
+/*Si la comparación es falsa y el valor de tipo no es igual 
+a 'agua', se asigna null al campo id_t del nuevo registro.*/
+        :NEW.id_3 := NULL;
+    END IF;
+END;
+/
+
+INSERT INTO t_tabla_3 (marca_o_nombre_del_puesto) VALUES ('manantial');
+
+INSERT INTO t_tabla_3 (marca_o_nombre_del_puesto) VALUES ('el tio');
+
+select*from  t_tabla_1  JOIN t_tabla_2  on id_1 = id_t JOIN t_tabla_3  on id_1=id_3;
+/*FULL JOIN para combinar las tres tablas y seleccionar 
+nombre de la tabla 1, tipo de la tabla 2 y marca de la tabla 3*/
+SELECT t1.nombre, t2.tipo, t3.marca_o_nombre_del_puesto
+FROM t_tabla_1 t1
+FULL JOIN t_tabla_2 t2 ON t1.num_tipo = t2.id_t
+FULL JOIN t_tabla_3 t3 ON t1.num_mar = t3.id_3;
+/*combina las tres tablas utilizando operaciones de JOIN y selecciona los productos que están
+relacionados con el puesto o la marca con el nombre exacto "puesto y frituras la mesita"*/
+SELECT t1.nombre, t1.precio, t2.tipo
+FROM t_tabla_1 t1
+INNER JOIN t_tabla_2 t2 ON t1.num_tipo = t2.id_t
+INNER JOIN t_tabla_3 t3 ON t1.num_mar = t3.id_3
+WHERE t3.marca_o_nombre_del_puesto LIKE '%puesto y frituras la mesita%';
+
+/*une la tabla 1 y la tabla 2 mostrando todos los
+registros de la tabla 1 y los registros coincidentes de la tabla 2*/
+SELECT t1.nombre, t1.precio, t2.tipo
+FROM t_tabla_1 t1
+LEFT JOIN t_tabla_2 t2 ON t1.num_tipo = t2.id_t;
+
+/*Consulta utilizando RIGHT JOIN para unir la tabla 1 y la tabla 3, mostrando todos los registros de 
+la tabla 3 y los registros coincidentes de la tabla 1*/
+SELECT t1.nombre, t1.precio, t3.marca_o_nombre_del_puesto
+FROM t_tabla_1 t1
+RIGHT JOIN t_tabla_3 t3 ON t1.num_mar = t3.id_3;
+
+/*para combinar las tres tablas sin relación */
+SELECT t1.nombre, t2.tipo, t3.marca_o_nombre_del_puesto
+FROM t_tabla_1 t1
+FULL JOIN t_tabla_2 t2 ON 1 = 0
+FULL JOIN t_tabla_3 t3 ON 1 = 0;
+
+/*une las tres tablas y mostrar los productos que empiezan con la letra b y p:*/
+SELECT t1.nombre, t2.tipo, t3.marca_o_nombre_del_puesto
+FROM t_tabla_1 t1
+JOIN t_tabla_2 t2 ON t1.num_tipo = t2.id_t
+JOIN t_tabla_3 t3 ON t1.num_mar = t3.id_3
+WHERE t1.nombre LIKE 'b%' OR t1.nombre LIKE 'p%';
+
+/*cree una tabla extra*/
+CREATE TABLE t_tabla_extra (
+  mensaje VARCHAR2(50),
+  nombre_producto VARCHAR2(80)
+);
+
+select*from t_tabla_extra;
+/*cree un  trigger en la tabla t_tabla_1 
+que se activará antes de cada inserción before insert en esa tabla.*/
+CREATE OR REPLACE TRIGGER tri_insert_tabla_1
+BEFORE INSERT ON t_tabla_1
+FOR EACH ROW
+/*declara una variable v_nombre_producto para almacenar el nombre del producto */
+DECLARE
+  v_nombre_producto VARCHAR2(80);
+BEGIN/* para comenzar*/
+/*Se asigna el valor del nombre del producto nuevo a la variable v_nombre_producto utilizando 
+:new.nombre. :new es una referencia al nuevo registro */
+  v_nombre_producto := :NEW.nombre;
+  /*el primer carácter del nombre del producto substr(v_nombre_producto, 1, 1) es igual a 'T'
+  Esto se hace utilizando 
+  la función substr para obtener el primer carácter del nombre y luego se compara con 'T'*/
+  IF SUBSTR(v_nombre_producto, 1, 1) = 'T' THEN
+  /*Si la condición es verdadera (es decir, el nombre del producto comienza con 'T')
+  se realiza una inserción en la tabla t_tabla_extra utilizando la cláusula insert
+ se inserta el mensaje "Se insertó un producto con la vitamina T" y 
+ el nombre del producto (v_nombre_producto)*/
+    INSERT INTO t_tabla_extra (mensaje, nombre_producto)
+    VALUES ('Se insertó un producto con la vitamina T', v_nombre_producto);
+  END IF;
+END;
+/
+
+
+INSERT INTO t_tabla_1 (id_1, nombre, precio, num_tipo, num_mar) VALUES (3, 'Tarta de manzana', 15, 3, 3);
+
+/*create view seguida del nombre que deseas asignar a la vista.*/
+CREATE VIEW vista_productos AS
+/*con as se especifica la consulta que define el contenido de la vista*/
+SELECT t1.nombre AS nombre_producto, t2.tipo AS tipo_producto, 
+t3.marca_o_nombre_del_puesto AS marca_puesto
+/*join para combinar las tres tablas */
+FROM t_tabla_1 t1
+JOIN t_tabla_2 t2 ON t1.num_tipo = t2.id_t
+JOIN t_tabla_3 t3 ON t1.num_mar = t3.id_3;
+
+SELECT * FROM vista_productos;
+
+/*Por los trabajos anteriores que he realizado en otras materias quiero yo entender que 
+las tablas 1,2 y 3 se refieren a que el acomodamiento de las inserciones es en esta forma 
+en la que lo estoy realizando*/
+
+/*tabla 1*/
+insert into t_tabla_1 values(1,'pelón pelo rico',6,1,'Lorena de The Hershey Company');
+insert into t_tabla_1 values(2,'muecas',10,2, 'lucas');
+insert into t_tabla_1 values(3,'pulparindo',3,3, 'dulces De La Rosa');
+insert into t_tabla_1 values(4,'mazapan',5,3, 'dulces De La Rosa');
+insert into t_tabla_1 values(5,'panditas',10,4, 'rikolino');
+insert into t_tabla_1 values(6,'carlosV',10,5, 'nestle');
+insert into t_tabla_1 values(7,'pinta azul',4,6, 'vero');
+insert into t_tabla_1 values(8,'picafresa',1,6, 'vero');
+insert into t_tabla_1 values(9,'rocka leta',6,6, 'vero');
+insert into t_tabla_1 values(10,'paletas de cajeta',2,5, 'coronado');
+insert into t_tabla_1 values(11,'duvalin',4,4, 'ricolino');
+insert into t_tabla_1 values(12,'tamborcitos',4,7, 'Farvisan');
+insert into t_tabla_1 values(13,'dragonzitos',3,8, 'chupa chups dir');
+insert into t_tabla_1 values(14,'glorias',3,9, 'las sevillanas');
+insert into t_tabla_1 values(15,'aciditos',1,3, 'dulces De La Rosa');
+insert into t_tabla_1 values(16,'paleta mango',6,6, 'vero');
+insert into t_tabla_1 values(17,'paleta tarrito',3,6, 'vero');
+insert into t_tabla_1 values(18,'bocadin',2,10, 'Grupo Bimbo');
+insert into t_tabla_1 values(19,'paleta de sandia',3,6, 'vero');
+
+insert into t_tabla_1 values(20,'pizza',20,11,'benesia');
+insert into t_tabla_1 values(21,'pizza',20,11,'benesia');
+insert into t_tabla_1 values(22,'pizza',20,11,'benesia');
+insert into t_tabla_1 values(23,'pizza',20,11,'benesia');
+
+insert into t_tabla_1 values(24,'tortas',50,12,'el tio');
+insert into t_tabla_1 values(25,'tortas',50,12,'el tio');
+insert into t_tabla_1 values(26,'tortas',50,12,'el tio');
+insert into t_tabla_1 values(27,'tortas',50,12,'el tio');
+insert into t_tabla_1 values(28,'tortas',50,12,'el tio');
+insert into t_tabla_1 values(29,'tortas',50,12,'el tio');
+insert into t_tabla_1 values(30,'tortas',50,12,'el tio');
+insert into t_tabla_1 values(31,'tortas',50,12,'el tio');
+insert into t_tabla_1 values(32,'tortas',50,12,'el tio');
+insert into t_tabla_1 values(33,'tortas',50,12,'el tio');
+insert into t_tabla_1 values(34,'tortas',50,12,'el tio');
+insert into t_tabla_1 values(35,'tortas',50,12,'el tio');
+
+insert into t_tabla_1 values(36,'pastor',20,13,'el tio');
+insert into t_tabla_1 values(37,'suadero',20,13,'el tio');
+insert into t_tabla_1 values(38,'bistek',20,13,'el tio');
+insert into t_tabla_1 values(39,'chuleta',20,13,'el tio');
+insert into t_tabla_1 values(40,'longaniza',20,13,'el tio');
+insert into t_tabla_1 values(41,'campechanos',20,13,'el tio');
+insert into t_tabla_1 values(42,'especial',20,13,'el tio');
+insert into t_tabla_1 values(43,'bagabundo',20,13,'el tio');
+insert into t_tabla_1 values(44,'alabre',20,13,'el tio');
+
+insert into t_tabla_1 values(45,'fresa',35,14,'el jarrito');
+insert into t_tabla_1 values(46,'guayaba',35,14,'el jarrito');
+insert into t_tabla_1 values(47,'melon',35,14,'el jarrito');
+insert into t_tabla_1 values(48,'limon',35,14,'el jarrito');
+insert into t_tabla_1 values(49,'papaya',35,14,'el jarrito');
+insert into t_tabla_1 values(50,'sandia',35,14,'el jarrito');
+insert into t_tabla_1 values(51,'manzana',35,14,'el jarrito');
+insert into t_tabla_1 values(52,'avena',35,14,'el jarrito');
+insert into t_tabla_1 values(53,'naranja',35,14,'el jarrito');
+insert into t_tabla_1 values(54,'pina',35,14,'el jarrito');
+
+insert into t_tabla_1 values(55,'alfalfa',35,14,'el jarrito');
+insert into t_tabla_1 values(56,'manzana con avena',35,14,'el jarrito');
+insert into t_tabla_1 values(57,'fresa con avena',35,14,'el jarrito');
+insert into t_tabla_1 values(58,'papaya con limon',35,14,'el jarrito');
+insert into t_tabla_1 values(59,'citricos naranja,guayaba,limon y pina',35,14,'el jarrito');
+insert into t_tabla_1 values(60,'frutos rojos sandia t fresa',35,14,'el jarrito');
+insert into t_tabla_1 values(61,'limon con chia',35,14,'el jarrito');
+insert into t_tabla_1 values(62,'pepino, limon y chia',35,14,'el jarrito');
+
+insert into t_tabla_1 values(63,'fresa',35,15,'el jarrito');
+insert into t_tabla_1 values(64,'mamy',35,15,'el jarrito');
+insert into t_tabla_1 values(65,'platano',35,15,'el jarrito');
+insert into t_tabla_1 values(66,'guayaba',35,15,'el jarrito');
+insert into t_tabla_1 values(67,'chocomilk',35,15,'el jarrito');
+insert into t_tabla_1 values(68,'manzana',35,15,'el jarrito');
+insert into t_tabla_1 values(69,'avena',35,15,'el jarrito');
+insert into t_tabla_1 values(70,'granola',35,15,'el jarrito');
+insert into t_tabla_1 values(71,'combinados',35,15,'el jarrito');
+
+insert into t_tabla_1 values(72,'cocteles de fruta',35,16,'el jarrito');
+insert into t_tabla_1 values(73,'escamochas',35,16,'el jarrito');
+
+insert into t_tabla_1 values(74,'hot dog',36,17,'ta malito');
+insert into t_tabla_1 values(75,'cafe',35,17,'ta malito');
+
+/*tabla 2*/
+insert into t_tabla_2 values(1,'dulce');
+insert into t_tabla_2 values(2,'dulce');
+insert into t_tabla_2 values(3,'dulce');
+insert into t_tabla_2 values(4,'dulce');
+insert into t_tabla_2 values(5,'dulce');
+insert into t_tabla_2 values(6,'dulce');
+insert into t_tabla_2 values(7,'dulce');
+insert into t_tabla_2 values(8,'dulce');
+insert into t_tabla_2 values(9,'dulce');
+insert into t_tabla_2 values(10,'dulce');
+insert into t_tabla_2 values(11,'dulce');
+insert into t_tabla_2 values(12,'dulce');
+insert into t_tabla_2 values(13,'dulce');
+insert into t_tabla_2 values(14,'dulce');
+insert into t_tabla_2 values(15,'dulce');
+insert into t_tabla_2 values(16,'dulce');
+insert into t_tabla_2 values(17,'dulce');
+insert into t_tabla_2 values(18,'dulce');
+insert into t_tabla_2 values(19,'dulce');
+
+insert into t_tabla_2 values(20,'pepperoni');
+insert into t_tabla_2 values(21,'hawaiana');
+insert into t_tabla_2 values(22,'queso');
+insert into t_tabla_2 values(23,'queso con longaniza');
+
+insert into t_tabla_2 values(24,'rusa');
+insert into t_tabla_2 values(25,'argentina');
+insert into t_tabla_2 values(26,'hawaiana');
+insert into t_tabla_2 values(27,'toluquena');
+insert into t_tabla_2 values(28,'abandonada');
+insert into t_tabla_2 values(29,'cementera');
+insert into t_tabla_2 values(30,'quebradita');
+insert into t_tabla_2 values(31,'alemana');
+insert into t_tabla_2 values(32,'teoem');
+insert into t_tabla_2 values(33,'ues');
+insert into t_tabla_2 values(34,'tu torta');
+insert into t_tabla_2 values(35,'cubana');
+
+insert into t_tabla_2 values(36,'pastor');
+insert into t_tabla_2 values(37,'suadero');
+insert into t_tabla_2 values(38,'bisteck');
+insert into t_tabla_2 values(39,'chuleta');
+insert into t_tabla_2 values(40,'longaniza');
+insert into t_tabla_2 values(41,'campechanos');
+insert into t_tabla_2 values(42,'especial');
+insert into t_tabla_2 values(43,'bagabundo');
+insert into t_tabla_2 values(44,'alambre');
+
+insert into t_tabla_2 values(45,'agua');
+insert into t_tabla_2 values(46,'agua');
+insert into t_tabla_2 values(47,'agua');
+insert into t_tabla_2 values(48,'agua');
+insert into t_tabla_2 values(49,'agua');
+insert into t_tabla_2 values(50,'agua');
+insert into t_tabla_2 values(51,'agua');
+insert into t_tabla_2 values(52,'agua');
+insert into t_tabla_2 values(53,'agua');
+insert into t_tabla_2 values(54,'agua');
+insert into t_tabla_2 values(55,'agua');
+insert into t_tabla_2 values(56,'agua');
+insert into t_tabla_2 values(57,'agua');
+insert into t_tabla_2 values(58,'agua');
+insert into t_tabla_2 values(59,'agua');
+insert into t_tabla_2 values(60,'agua');
+insert into t_tabla_2 values(61,'agua');
+insert into t_tabla_2 values(62,'agua');
+
+insert into t_tabla_2 values(63,'licuados');
+insert into t_tabla_2 values(64,'licuados');
+insert into t_tabla_2 values(65,'licuados');
+insert into t_tabla_2 values(66,'licuados');
+insert into t_tabla_2 values(67,'licuados');
+insert into t_tabla_2 values(68,'licuados');
+insert into t_tabla_2 values(69,'licuados');
+insert into t_tabla_2 values(70,'licuados');
+insert into t_tabla_2 values(71,'licuados');
+
+insert into t_tabla_2 values(72,'fruta');
+insert into t_tabla_2 values(73,'fruta');
+
+insert into t_tabla_2 values(74,'pan');
+insert into t_tabla_2 values(75,'bebida caliente');
+
+insert into t_tabla_2 values(76,'ropa');
+insert into t_tabla_2 values(77,'zapatos');
+insert into t_tabla_2 values(78,'celulares');
+insert into t_tabla_2 values(79,'lentes');
+insert into t_tabla_2 values(80,'accesorios para motos');
+
+/*tabla 3*/
+
+insert into t_tabla_3 values(1,'puesto y frituras la mesita');
+insert into t_tabla_3 values(2,'puesto y frituras la mesita');
+insert into t_tabla_3 values(3,'puesto y frituras la mesita');
+insert into t_tabla_3 values(4,'puesto y frituras la mesita');
+insert into t_tabla_3 values(5,'puesto y frituras la mesita');
+insert into t_tabla_3 values(6,'puesto y frituras la mesita');
+insert into t_tabla_3 values(7,'puesto y frituras la mesita');
+insert into t_tabla_3 values(8,'puesto y frituras la mesita');
+insert into t_tabla_3 values(9,'puesto y frituras la mesita');
+insert into t_tabla_3 values(10,'puesto y frituras la mesita');
+insert into t_tabla_3 values(11,'puesto y frituras la mesita');
+insert into t_tabla_3 values(12,'puesto y frituras la mesita');
+insert into t_tabla_3 values(13,'puesto y frituras la mesita');
+insert into t_tabla_3 values(14,'puesto y frituras la mesita');
+insert into t_tabla_3 values(15,'puesto y frituras la mesita');
+insert into t_tabla_3 values(16,'puesto y frituras la mesita');
+insert into t_tabla_3 values(17,'puesto y frituras la mesita');
+insert into t_tabla_3 values(18,'puesto y frituras la mesita');
+insert into t_tabla_3 values(19,'puesto y frituras la mesita');
+
+insert into t_tabla_3 values(20,'Mi changarrito');
+insert into t_tabla_3 values(21,'Mi changarrito');
+insert into t_tabla_3 values(22,'Mi changarrito');
+insert into t_tabla_3 values(23,'Mi changarrito');
+
+insert into t_tabla_3 values(24,'Mi changarrito');
+insert into t_tabla_3 values(25,'Mi changarrito');
+insert into t_tabla_3 values(26,'Mi changarrito');
+insert into t_tabla_3 values(27,'Mi changarrito');
+insert into t_tabla_3 values(28,'Mi changarrito');
+insert into t_tabla_3 values(29,'Mi changarrito');
+insert into t_tabla_3 values(30,'Mi changarrito');
+insert into t_tabla_3 values(31,'Mi changarrito');
+insert into t_tabla_3 values(32,'Mi changarrito');
+insert into t_tabla_3 values(33,'Mi changarrito');
+insert into t_tabla_3 values(34,'Mi changarrito');
+insert into t_tabla_3 values(35,'Mi changarrito');
+
+insert into t_tabla_3 values(36,'el tio');
+insert into t_tabla_3 values(37,'el tio');
+insert into t_tabla_3 values(38,'el tio');
+insert into t_tabla_3 values(39,'el tio');
+insert into t_tabla_3 values(40,'el tio');
+insert into t_tabla_3 values(41,'el tio');
+insert into t_tabla_3 values(42,'el tio');
+insert into t_tabla_3 values(43,'el tio');
+insert into t_tabla_3 values(44,'el tio');
+
+insert into t_tabla_3 values(45,'manantial');
+insert into t_tabla_3 values(46,'manantial');
+insert into t_tabla_3 values(47,'manantial');
+insert into t_tabla_3 values(48,'manantial');
+insert into t_tabla_3 values(49,'manantial');
+insert into t_tabla_3 values(50,'manantial');
+insert into t_tabla_3 values(51,'manantial');
+insert into t_tabla_3 values(52,'manantial');
+insert into t_tabla_3 values(53,'manantial');
+insert into t_tabla_3 values(54,'manantial');
+insert into t_tabla_3 values(55,'manantial');
+insert into t_tabla_3 values(56,'manantial');
+insert into t_tabla_3 values(57,'manantial');
+insert into t_tabla_3 values(58,'manantial');
+insert into t_tabla_3 values(59,'manantial');
+insert into t_tabla_3 values(60,'manantial');
+insert into t_tabla_3 values(61,'manantial');
+insert into t_tabla_3 values(62,'manantial');
+insert into t_tabla_3 values(63,'manantial');
+insert into t_tabla_3 values(64,'manantial');
+insert into t_tabla_3 values(65,'manantial');
+insert into t_tabla_3 values(66,'manantial');
+insert into t_tabla_3 values(67,'manantial');
+insert into t_tabla_3 values(68,'manantial');
+insert into t_tabla_3 values(69,'manantial');
+insert into t_tabla_3 values(70,'manantial');
+insert into t_tabla_3 values(71,'manantial');
+insert into t_tabla_3 values(72,'manantial');
+insert into t_tabla_3 values(73,'manantial');
+
+insert into t_tabla_3 values(74,'tamales san juan');
+insert into t_tabla_3 values(75,'tamales san juan');
+insert into t_tabla_3 values(76,'cuidado con el perro');
+
+insert into t_tabla_3 values(77,'flexi');
+insert into t_tabla_3 values(78,'motorola');
+insert into t_tabla_3 values(79,'ray ban');
+insert into t_tabla_3 values(80,'italika');
+
+/*************************************************************************************************************/
+/*todos los insert de la t_tabla_1 son diferentes a los primeros insert
+en los insert de la t_tabla_2 y t_tabla_3 son los mismos*/  
+insert into t_tabla_1 values(1,'pelón pelo rico',6,1,1);
+insert into t_tabla_1 values(2,'muecas',10,2, 2);
+insert into t_tabla_1 values(3,'pulparindo',3,3, 3);
+insert into t_tabla_1 values(4,'mazapan',5,3, 3);
+insert into t_tabla_1 values(5,'panditas',10,4, 4);
+insert into t_tabla_1 values(6,'carlosV',10,5, 5);
+insert into t_tabla_1 values(7,'pinta azul',4,6, 6);
+insert into t_tabla_1 values(8,'picafresa',1,6, 6);
+insert into t_tabla_1 values(9,'rocka leta',6,6, 6);
+insert into t_tabla_1 values(10,'paletas de cajeta',2,5, 7);
+insert into t_tabla_1 values(11,'duvalin',4,4, 4);
+insert into t_tabla_1 values(12,'tamborcitos',4,7, 8);
+insert into t_tabla_1 values(13,'dragonzitos',3,8, 9);
+insert into t_tabla_1 values(14,'glorias',3,9, 10);
+insert into t_tabla_1 values(15,'aciditos',1,3, 3);
+insert into t_tabla_1 values(16,'paleta mango',6,6, 6);
+insert into t_tabla_1 values(17,'paleta tarrito',3,6, 6);
+insert into t_tabla_1 values(18,'bocadin',2,10, 11);
+insert into t_tabla_1 values(19,'paleta de sandia',3,6, 6);
+
+insert into t_tabla_1 values(20,'pepperoni',20,11,12);
+insert into t_tabla_1 values(21,'hawaiana',20,11,12);
+insert into t_tabla_1 values(22,'queso',20,11,12);
+insert into t_tabla_1 values(23,'queso con longaniza',20,11,12);
+
+insert into t_tabla_1 values(24,'rusa',50,12,13);
+insert into t_tabla_1 values(25,'argentina',50,12,13);
+insert into t_tabla_1 values(26,'hawaiana',50,12,13);
+insert into t_tabla_1 values(27,'toluquena',50,12,13);
+insert into t_tabla_1 values(28,'abandonada',50,12,13);
+insert into t_tabla_1 values(29,'cementera',50,12,13);
+insert into t_tabla_1 values(30,'quebradita',50,12,13);
+insert into t_tabla_1 values(31,'alemana',50,12,13);
+insert into t_tabla_1 values(32,'teoem',50,12,13);
+insert into t_tabla_1 values(33,'ues',50,12,13);
+insert into t_tabla_1 values(34,'tu torta',50,12,13);
+insert into t_tabla_1 values(35,'cubana',50,12,13);
+
+insert into t_tabla_1 values(36,'pastor',20,13,13);
+insert into t_tabla_1 values(37,'suadero',20,13,13);
+insert into t_tabla_1 values(38,'bistek',20,13,13);
+insert into t_tabla_1 values(39,'chuleta',20,13,13);
+insert into t_tabla_1 values(40,'longaniza',20,13,13);
+insert into t_tabla_1 values(41,'campechanos',20,13,13);
+insert into t_tabla_1 values(42,'especial',20,13,13);
+insert into t_tabla_1 values(43,'bagabundo',20,13,13);
+insert into t_tabla_1 values(44,'alabre',20,13,13);
+
+
+insert into t_tabla_1 values(55,'alfalfa',35,14,14);
+insert into t_tabla_1 values(56,'manzana con avena',35,14,14);
+insert into t_tabla_1 values(57,'fresa con avena',35,14,14);
+insert into t_tabla_1 values(58,'papaya con limon',35,14,14);
+insert into t_tabla_1 values(59,'citricos naranja,guayaba,limon y pina',35,14,14);
+insert into t_tabla_1 values(60,'frutos rojos sandia t fresa',35,14,14);
+insert into t_tabla_1 values(61,'limon con chia',35,14,14);
+insert into t_tabla_1 values(62,'pepino, limon y chia',35,14,14);
+
+insert into t_tabla_1 values(63,'fresa',35,15,14);
+insert into t_tabla_1 values(64,'mamy',35,15,14);
+insert into t_tabla_1 values(65,'platano',35,15,14);
+insert into t_tabla_1 values(66,'guayaba',35,15,14);
+insert into t_tabla_1 values(67,'chocomilk',35,15,14);
+insert into t_tabla_1 values(68,'manzana',35,15,14);
+insert into t_tabla_1 values(69,'avena',35,15,14);
+insert into t_tabla_1 values(70,'granola',35,15,14);
+insert into t_tabla_1 values(71,'combinados',35,15,14);
+
+insert into t_tabla_1 values(72,'cocteles de fruta',35,16,14);
+insert into t_tabla_1 values(73,'escamochas',35,16,14);
+
+insert into t_tabla_1 values(74,'hot dog',36,17,15);
+insert into t_tabla_1 values(75,'cafe',35,17,15);
+
+/*lo que me esta indicando es que va a hacer una secuencia de valores para id
+comenzando desde 1 y se incrementa en 1*/
+CREATE SEQUENCE seq_tabla_2 START WITH 1 INCREMENT BY 1; 
+/*cree el trigger que se ejecuta antes de insertar un nuevo resgistro en la t_tabla_2*/
+/*utilizara la secuencia y realizando comparaciones para determinar un campo id_t*/
+CREATE OR REPLACE TRIGGER tri_tabla_2
+/*se ejecutará antes de realizar una inserción*/
+BEFORE INSERT ON t_tabla_2
+/* se ejecutará una vez por cada fila afectada por la inserción*/
+FOR EACH ROW
+BEGIN
+/*compara el valor del campo tipo del nuevo registro :new.tipo con la cadena 'ropa' */
+    IF :NEW.tipo = 'ropa' THEN
+/* Si la comparación es verdadera y el valor de tipo es igual a 'ropa' 
+se asigna el siguiente valor de la secuencia seq_tabla_2 al campo id_t del nuevo registro */
+        :NEW.id_t := seq_tabla_2.NEXTVAL;
+ /*utilice elsif para agregar un segundo if y esto permite realizar una segunda condion basada en otro valor de tipo*/
+     ELSIF :NEW.tipo = 'agua' THEN
+/* Si la comparación es verdadera y el valor de tipo es igual a 'agua' 
+se asigna el siguiente valor de la secuencia seq_tabla_2 al campo id_t del nuevo registro */
+        :NEW.id_t := seq_tabla_2.NEXTVAL ;
+    ELSE
+/*Si la comparación es falsa y el valor de tipo no es igual 
+a 'agua', se asigna null al campo id_t del nuevo registro.*/
+        :NEW.id_t := NULL;
+    END IF;
+END;
+/
+
+INSERT INTO t_tabla_2 (tipo) VALUES ('ropa');
+INSERT INTO t_tabla_2 (tipo) VALUES ('agua');
+
+
+
+
+/*tabla 2*/
+insert into t_tabla_2 values(1,'dulce');
+insert into t_tabla_2 values(2,'dulce');
+insert into t_tabla_2 values(3,'dulce');
+insert into t_tabla_2 values(4,'dulce');
+insert into t_tabla_2 values(5,'dulce');
+insert into t_tabla_2 values(6,'dulce');
+insert into t_tabla_2 values(7,'dulce');
+insert into t_tabla_2 values(8,'dulce');
+insert into t_tabla_2 values(9,'dulce');
+insert into t_tabla_2 values(10,'dulce');
+insert into t_tabla_2 values(11,'dulce');
+insert into t_tabla_2 values(12,'dulce');
+insert into t_tabla_2 values(13,'dulce');
+insert into t_tabla_2 values(14,'dulce');
+insert into t_tabla_2 values(15,'dulce');
+insert into t_tabla_2 values(16,'dulce');
+insert into t_tabla_2 values(17,'dulce');
+insert into t_tabla_2 values(18,'dulce');
+insert into t_tabla_2 values(19,'dulce');
+
+insert into t_tabla_2 values(20,'pizza');
+insert into t_tabla_2 values(21,'pizza');
+insert into t_tabla_2 values(22,'pizza');
+insert into t_tabla_2 values(23,'pizza');
+
+insert into t_tabla_2 values(24,'tortas');
+insert into t_tabla_2 values(25,'tortas');
+insert into t_tabla_2 values(26,'tortas');
+insert into t_tabla_2 values(27,'tortas');
+insert into t_tabla_2 values(28,'tortas');
+insert into t_tabla_2 values(29,'tortas');
+insert into t_tabla_2 values(30,'tortas');
+insert into t_tabla_2 values(31,'tortas');
+insert into t_tabla_2 values(32,'tortas');
+insert into t_tabla_2 values(33,'tortas');
+insert into t_tabla_2 values(34,'tortas');
+insert into t_tabla_2 values(35,'tortas');
+
+insert into t_tabla_2 values(36,'tacos');
+insert into t_tabla_2 values(37,'tacos');
+insert into t_tabla_2 values(38,'tacos');
+insert into t_tabla_2 values(39,'tacos');
+insert into t_tabla_2 values(40,'tacos');
+insert into t_tabla_2 values(41,'tacos');
+insert into t_tabla_2 values(42,'tacos');
+insert into t_tabla_2 values(43,'tacos');
+insert into t_tabla_2 values(44,'tacos');
+
+insert into t_tabla_2 values(45,'agua');
+insert into t_tabla_2 values(46,'agua');
+insert into t_tabla_2 values(47,'agua');
+insert into t_tabla_2 values(48,'agua');
+insert into t_tabla_2 values(49,'agua');
+insert into t_tabla_2 values(50,'agua');
+insert into t_tabla_2 values(51,'agua');
+insert into t_tabla_2 values(52,'agua');
+insert into t_tabla_2 values(53,'agua');
+insert into t_tabla_2 values(54,'agua');
+insert into t_tabla_2 values(55,'agua');
+insert into t_tabla_2 values(56,'agua');
+insert into t_tabla_2 values(57,'agua');
+insert into t_tabla_2 values(58,'agua');
+insert into t_tabla_2 values(59,'agua');
+insert into t_tabla_2 values(60,'agua');
+insert into t_tabla_2 values(61,'agua');
+insert into t_tabla_2 values(62,'agua');
+
+insert into t_tabla_2 values(63,'licuados');
+insert into t_tabla_2 values(64,'licuados');
+insert into t_tabla_2 values(65,'licuados');
+insert into t_tabla_2 values(66,'licuados');
+insert into t_tabla_2 values(67,'licuados');
+insert into t_tabla_2 values(68,'licuados');
+insert into t_tabla_2 values(69,'licuados');
+insert into t_tabla_2 values(70,'licuados');
+insert into t_tabla_2 values(71,'licuados');
+
+insert into t_tabla_2 values(72,'fruta');
+insert into t_tabla_2 values(73,'fruta');
+
+insert into t_tabla_2 values(74,'pan');
+insert into t_tabla_2 values(75,'bebida caliente');
+
+insert into t_tabla_2 values(76,'ropa');
+insert into t_tabla_2 values(77,'zapatos');
+insert into t_tabla_2 values(78,'celulares');
+insert into t_tabla_2 values(79,'lentes');
+insert into t_tabla_2 values(80,'accesorios para motos');
+/*tabla 3*/
+
+insert into t_tabla_3 values(1,'puesto y frituras la mesita');
+insert into t_tabla_3 values(2,'puesto y frituras la mesita');
+insert into t_tabla_3 values(3,'puesto y frituras la mesita');
+insert into t_tabla_3 values(4,'puesto y frituras la mesita');
+insert into t_tabla_3 values(5,'puesto y frituras la mesita');
+insert into t_tabla_3 values(6,'puesto y frituras la mesita');
+insert into t_tabla_3 values(7,'puesto y frituras la mesita');
+insert into t_tabla_3 values(8,'puesto y frituras la mesita');
+insert into t_tabla_3 values(9,'puesto y frituras la mesita');
+insert into t_tabla_3 values(10,'puesto y frituras la mesita');
+insert into t_tabla_3 values(11,'puesto y frituras la mesita');
+insert into t_tabla_3 values(12,'puesto y frituras la mesita');
+insert into t_tabla_3 values(13,'puesto y frituras la mesita');
+insert into t_tabla_3 values(14,'puesto y frituras la mesita');
+insert into t_tabla_3 values(15,'puesto y frituras la mesita');
+insert into t_tabla_3 values(16,'puesto y frituras la mesita');
+insert into t_tabla_3 values(17,'puesto y frituras la mesita');
+insert into t_tabla_3 values(18,'puesto y frituras la mesita');
+insert into t_tabla_3 values(19,'puesto y frituras la mesita');
+
+insert into t_tabla_3 values(20,'benesia');
+insert into t_tabla_3 values(21,'benesia');
+insert into t_tabla_3 values(22,'benesia');
+insert into t_tabla_3 values(23,'benesia');
+
+insert into t_tabla_3 values(24,'el tio');
+insert into t_tabla_3 values(25,'el tio');
+insert into t_tabla_3 values(26,'el tio');
+insert into t_tabla_3 values(27,'el tio');
+insert into t_tabla_3 values(28,'el tio');
+insert into t_tabla_3 values(29,'el tio');
+insert into t_tabla_3 values(30,'el tio');
+insert into t_tabla_3 values(31,'el tio');
+insert into t_tabla_3 values(32,'el tio');
+insert into t_tabla_3 values(33,'el tio');
+insert into t_tabla_3 values(34,'el tio');
+insert into t_tabla_3 values(35,'el tio');
+
+insert into t_tabla_3 values(36,'el tio');
+insert into t_tabla_3 values(37,'el tio');
+insert into t_tabla_3 values(38,'el tio');
+insert into t_tabla_3 values(39,'el tio');
+insert into t_tabla_3 values(40,'el tio');
+insert into t_tabla_3 values(41,'el tio');
+insert into t_tabla_3 values(42,'el tio');
+insert into t_tabla_3 values(43,'el tio');
+insert into t_tabla_3 values(44,'el tio');
+
+insert into t_tabla_3 values(45,'manantial');
+insert into t_tabla_3 values(46,'manantial');
+insert into t_tabla_3 values(47,'manantial');
+insert into t_tabla_3 values(48,'manantial');
+insert into t_tabla_3 values(49,'manantial');
+insert into t_tabla_3 values(50,'manantial');
+insert into t_tabla_3 values(51,'manantial');
+insert into t_tabla_3 values(52,'manantial');
+insert into t_tabla_3 values(53,'manantial');
+insert into t_tabla_3 values(54,'manantial');
+insert into t_tabla_3 values(55,'manantial');
+insert into t_tabla_3 values(56,'manantial');
+insert into t_tabla_3 values(57,'manantial');
+insert into t_tabla_3 values(58,'manantial');
+insert into t_tabla_3 values(59,'manantial');
+insert into t_tabla_3 values(60,'manantial');
+insert into t_tabla_3 values(61,'manantial');
+insert into t_tabla_3 values(62,'manantial');
+insert into t_tabla_3 values(63,'manantial');
+insert into t_tabla_3 values(64,'manantial');
+insert into t_tabla_3 values(65,'manantial');
+insert into t_tabla_3 values(66,'manantial');
+insert into t_tabla_3 values(67,'manantial');
+insert into t_tabla_3 values(68,'manantial');
+insert into t_tabla_3 values(69,'manantial');
+insert into t_tabla_3 values(70,'manantial');
+insert into t_tabla_3 values(71,'manantial');
+insert into t_tabla_3 values(72,'manantial');
+insert into t_tabla_3 values(73,'manantial');
+
+insert into t_tabla_3 values(74,'ta malitos');
+insert into t_tabla_3 values(75,'ta malitos');
+
+insert into t_tabla_3 values(76,'cuidado con el perro');
+insert into t_tabla_3 values(77,'flexi');
+insert into t_tabla_3 values(78,'motorola');
+insert into t_tabla_3 values(79,'ray ban');
+insert into t_tabla_3 values(80,'italika');
